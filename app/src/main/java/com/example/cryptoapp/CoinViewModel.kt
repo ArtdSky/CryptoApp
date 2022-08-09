@@ -9,7 +9,8 @@ import com.example.cryptoapp.database.AppDatabase
 import com.example.cryptoapp.pojo.CoinPriceInfo
 import com.example.cryptoapp.pojo.CoinPriceInfoRawData
 import com.google.gson.Gson
-import io.reactivex.rxjava3.disposables.CompositeDisposable
+import io.reactivex.disposables.CompositeDisposable
+import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
 import java.util.concurrent.TimeUnit
 
@@ -20,31 +21,31 @@ class CoinViewModel(application: Application) : AndroidViewModel(application) {
 
     val priceList = db.coinPriceInfoDao().getPriceList()
 
-    init{
-        loadData()
-    }
-
-
-    fun getDetailInfo(fSym : String) : LiveData<CoinPriceInfo>{
+    fun getDetailInfo(fSym: String): LiveData<CoinPriceInfo> {
         return db.coinPriceInfoDao().getPriceInfoAboutCoin(fSym)
     }
 
+    init {
+        loadData()
+    }
 
     private fun loadData() {
-        val disposable = ApiFactory.apiService.getTopCoinsInfo()
+        val disposable = ApiFactory.apiService.getTopCoinsInfo(limit = 50)
             .map { it.data?.map { it.coinInfo?.name }?.joinToString(",") }
-            .flatMap { ApiFactory.apiService.getFullPriceList(fSyms = it.toString()) }
+            .flatMap { ApiFactory.apiService.getFullPriceList(fSyms = it) }
             .map { getPriceListFromRawData(it) }
-            .delay(10, TimeUnit.SECONDS)
             .repeat()
             .retry()
             .subscribeOn(Schedulers.io())
+            .delaySubscription(10, TimeUnit.MILLISECONDS)
             .subscribe({
-               db.coinPriceInfoDao().insertPriceList(it)
-                Log.d("TEST_OF_LOADING_DATA", "Success$it")
+                db.coinPriceInfoDao().insertPriceList(it)
+                Log.d("TEST_OF_LOADING_DATA", "Success: $it")
             }, {
-                Log.d("TEST_OF_LOADING_DATA", "Failure$it")
+                Log.d("TEST_OF_LOADING_DATA", "Failure: ${it.message}")
             })
+
+        compositeDisposable.add(disposable)
     }
 
     private fun getPriceListFromRawData(
