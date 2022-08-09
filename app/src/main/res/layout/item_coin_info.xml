@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="4sp"
+    android:layout_margin="4dp"
     app:cardUseCompatPadding="true">
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -13,8 +13,8 @@
 
         <ImageView
             android:id="@+id/ivLogoCoin"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
+            android:layout_width="122dp"
+            android:layout_height="109dp"
             android:layout_margin="8dp"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
